@@ -1,0 +1,25 @@
+/* Basic styling for list items, etc. */
+.list-group-item {
+    cursor: pointer;
+}
+
+/* Basic question item styling */
+.question-item {
+    cursor: pointer;
+    padding: 8px; /* Add some padding for better click target */
+}
+
+/* Selected red state */
+.selected-red {
+    background-color: lightcoral;
+}
+
+/* Selected green state */
+.selected-green {
+    background-color: lightgreen;
+}
+
+.question-list {
+    list-style-type: none; /* Remove default list item markers/bullets */
+    padding-left: 0;        /* Remove default left padding */
+}
