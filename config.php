@@ -1,5 +1,5 @@
 <?php
-$servername = "34.150.221.231";
-$username = "triage_mtc";
-$password = "iNH)J1iY]V4/F#Z-";
-$dbname = "AAH_2024";
+$servername = getenv('CLOUD_SQL_HOST'); // Or $_ENV['CLOUD_SQL_HOST'] or $_SERVER['CLOUD_SQL_HOST']
+$username = getenv('CLOUD_SQL_USER');
+$password = getenv('CLOUD_SQL_PASSWORD');
+$dbname = getenv('CLOUD_SQL_DATABASE');
