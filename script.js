@@ -2,6 +2,7 @@ const searchInput = document.getElementById('searchInput');
 const protocolDropdown = document.getElementById('protocolDropdown');
 let allProtocols = []; // Array to store all protocols for filtering
 let currentEncounterID = null;
+let allQuestions = []; 
 
 async function fetchProtocols() {
     const response = await fetch('get_protocols.php');
@@ -72,12 +73,21 @@ async function endEncounter() {
         
         const questionID = item.textContent; // Extract question text
         const question = allQuestions.find(q => q.Question === questionID); // Find the original question object
-        
+        const adviceCheckboxes = item.closest('.card-body').querySelectorAll('.care-advice input[type="checkbox"]:checked');
+
+        if (question) {
         selectedQuestions.push({
             questionID: question.QuestionID,
             status: item.classList.contains('selected-red') ? 'red' : 'green'
         });
 
+        adviceCheckboxes.forEach(checkbox => {
+            selectedAdvice.push({
+                questionID: question.QuestionID,
+                adviceID: checkbox.value
+                });
+            });
+        }
         // Find associated care advice checkboxes if the question is red
         if (item.classList.contains('selected-red')) {
             const adviceCheckboxes = item.closest('.card-body').querySelectorAll('.care-advice input[type="checkbox"]:checked');
@@ -141,32 +151,47 @@ function displayQuestions(questionsByHeading) {
         const questionList = document.createElement('ul');
         questionList.classList.add('question-list');
 
+        allQuestions = Object.values(questionsByHeading).flat();
+
         questionsByHeading[level].forEach(question => {
             const listItem = document.createElement('li');
             listItem.textContent = question.Question;
             listItem.classList.add('question-item');
             listItem.title = question.Information;
             listItem.setAttribute('data-bs-toggle', 'tooltip');
-            let newStatus = question.Status || 'normal';
-            listItem.classList.add(`selected-${newStatus}`);
+            let currentStatus = question.Status || 'normal';
+            listItem.classList.add(`selected-${currentStatus}`);
 
             // Event Delegation for click events on list items
             listItem.addEventListener('click', async() => {
-                    if (listItem.classList.contains('selected-green')) {
-                        const confirmed = confirm(`Choose: ${question.Question}`);
-                        if (!confirmed) {
-                            return;
-                        }
-                        listItem.classList.remove('selected-green');
-                        listItem.classList.add('selected-red');
-                        newStatus = 'red';          // Add red if it was green
-                    } else if (listItem.classList.contains('selected-red')) {
-                        listItem.classList.remove('selected-red');
-                        newStatus = 'normal'       // Remove red if it was red
-                    } else {
-                        listItem.classList.add('selected-green');
-                        newStatus = 'green';       // Add green if neither
+                let newStatus = currentStatus;
+
+                if (listItem.classList.contains('selected-green')) {
+                    const confirmed = confirm(`Choose: ${question.Question}`);
+                    if (!confirmed) {
+                        return;
                     }
+                    listItem.classList.remove('selected-green');
+                    listItem.classList.add('selected-red');
+                    newStatus = 'red';          // Add red if it was green
+                } else if (listItem.classList.contains('selected-red')) {
+                    listItem.classList.remove('selected-red');
+                    newStatus = 'normal'       // Remove red if it was red
+                } else {
+                    listItem.classList.add('selected-green');
+                    newStatus = 'green';       // Add green if neither
+                }
+
+                const encounterID = sessionStorage.getItem('encounterID');
+                const questionID = question.QuestionID; 
+                const response = await fetch('update_question_status.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `encounterID=${encounterID}&questionID=${questionID}&status=${newStatus}` 
+                });
+
 
                     if (newStatus === 'red') {
                         fetchCareAdvice(question.QuestionID, listItem);
@@ -177,8 +202,20 @@ function displayQuestions(questionsByHeading) {
                                 careAdviceSection.remove();
                             }
                         };
+
+                const result = await response.json();
+                if (result.statusUpdated && newStatus === 'red' && result.adviceIDs.length > 0) {
+                    // Display Care Advice 
+                    displayCareAdvice(result.adviceIDs, listItem); // Function to be implemented later
+                } else {
+                    // Remove care advice if status is not 'red'
+                    const careAdviceSection = listItem.parentElement.querySelector('.care-advice');
+                    if (careAdviceSection) {
+                        careAdviceSection.remove();
+                    }
+                }
                         
-                });
+            });
 
             questionList.appendChild(listItem);
         });
@@ -193,21 +230,31 @@ function displayQuestions(questionsByHeading) {
 }
 
 async function fetchCareAdvice(questionID, listItem) {
-    console.log("Fetching care advice for QuestionID:", questionID);
-    const adviceResponse = await fetch(`get_care_advice.php?QuestionID=${questionID}`);
-    if (adviceResponse.ok) {
-      const adviceData = await adviceResponse.json();
-      console.log("Care advice data:", adviceData);
-      if (Array.isArray(adviceData) && adviceData.length > 0) {
-        displayCareAdvice(adviceData, listItem); 
-      } else {
-          // If no advice was found, display a message or handle it accordingly
-          alert("No care advice found for this question.");
-      }
+    const isRed = listItem.classList.contains('selected-red');
+
+    if (isRed) {
+
+        console.log("Fetching care advice for QuestionID:", questionID);
+        const adviceResponse = await fetch(`get_care_advice.php?QuestionID=${questionID}`);
+        if (adviceResponse.ok) {
+            const adviceData = await adviceResponse.json();
+            console.log("Care advice data:", adviceData);
+
+            if (Array.isArray(adviceData) && adviceData.length > 0) {
+                displayCareAdvice(adviceData, listItem); 
+            } else {
+                alert("No care advice found for this question.");
+            }
+        } else {
+            alert("Error fetching care advice.");
+        }
     } else {
-      alert("Error fetching care advice.");
+        const careAdviceSection = listItem.parentElement.querySelector('.care-advice');
+        if (careAdviceSection) {
+            careAdviceSection.remove();
+        }
     }
-  }
+}
   
   function displayCareAdvice(adviceData, listItem) {
     const currentCard = listItem.closest('.card');

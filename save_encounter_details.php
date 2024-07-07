@@ -20,7 +20,7 @@ $advice = $data['advice'];
 
 
 // Update encounter status to 'completed'
-$updateEncounterSql = "UPDATE Encounter SET Status = 'completed', EndTime = NOW() WHERE EncounterID = ?";
+$updateEncounterSql = "UPDATE Encounters SET Status = 'completed', EndTime = NOW() WHERE EncounterID = ?";
 $updateEncounterStmt = $conn->prepare($updateEncounterSql);
 $updateEncounterStmt->bind_param("i", $encounterID);
 $updateEncounterStmt->execute();
