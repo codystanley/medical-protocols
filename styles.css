@@ -1,4 +1,21 @@
 /* Basic styling for list items, etc. */
+#questionsContainer {
+    max-height: 500px; /* Optional: Set a maximum height for scrolling */
+    overflow-y: auto;  /* Optional: Enable vertical scrolling */
+}
+
+/* Additional styles for better appearance (optional) */
+.card {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border:.125rem #083b82 solid;  /* Add a subtle shadow */
+}
+
+.card-header {
+    color: #f8f9fa;
+    background-color: #0968b8; /* Light background for header */
+}
+
+
 .list-group-item {
     cursor: pointer;
 }
