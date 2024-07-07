@@ -1,9 +1,6 @@
 <?php
 // 1. Database Connection (replace placeholders with your actual credentials)
-$servername = "34.150.221.231";
-$username = "triage_mtc";
-$password = "iNH)J1iY]V4/F#Z-";
-$dbname = "AAH_2024";
+require_once 'config.php';
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
@@ -12,8 +9,6 @@ if ($conn->connect_error) {
     echo json_encode($response);
     exit; // Terminate script execution
 }
-
-
 // Get and validate QuestionID
 if (!isset($_GET['QuestionID']) || !is_numeric($_GET['QuestionID'])) {  
     $response = ["error" => "Invalid or missing QuestionID"];

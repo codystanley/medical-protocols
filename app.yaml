@@ -1,0 +1,7 @@
+runtime: php81
+
+env_variables:
+  CLOUD_SQL_HOST: '34.150.221.231'
+  CLOUD_SQL_DATABASE: 'AAH_2024'
+  CLOUD_SQL_USER: 'triage_mtc'
+  CLOUD_SQL_PASSWORD: 'iNH)J1iY]V4/F#Z-' 

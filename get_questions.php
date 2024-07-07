@@ -1,9 +1,6 @@
 <?php
-// 1. Database Connection (replace placeholders with your actual credentials)
-$servername = "34.150.221.231";
-$username = "triage_mtc";
-$password = "iNH)J1iY]V4/F#Z-";
-$dbname = "AAH_2024";
+
+require_once 'config.php';
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
@@ -13,7 +10,6 @@ if ($conn->connect_error) {
     exit; // Terminate script execution
 }
 
-// 2. Get and Validate AlgorithmID
 if (!isset($_GET['AlgorithmID']) || !is_numeric($_GET['AlgorithmID'])) {  // Changed to AlgorithmID
     $response = ["error" => "Invalid or missing AlgorithmID"];
     echo json_encode($response);

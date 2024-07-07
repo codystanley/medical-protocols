@@ -1,15 +1,14 @@
 <?php
 // 1. Database Connection (replace placeholders with your actual credentials)
-$servername = "34.150.221.231";
-$username = "triage_mtc";
-$password = "iNH)J1iY]V4/F#Z-";
-$dbname = "AAH_2024";
+require_once 'config.php';
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    // Handle the error in a way that returns valid JSON
+    $response = ["error" => "Database connection failed: " . $conn->connect_error];
+    echo json_encode($response);
+    exit; // Terminate script execution
 }
-
 // 2. Query Adult Protocols Table Directly
 $sql = "SELECT AlgorithmID,Title FROM Algorithm ORDER BY Title ASC"; 
 $result = $conn->query($sql);
