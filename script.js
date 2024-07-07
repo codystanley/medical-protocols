@@ -54,6 +54,9 @@ protocolDropdown.addEventListener('change', async () => {
     document.getElementById('endEncounterBtn').disabled = false;
 });
 
+
+let shouldLogQuestions = true;
+
 function displayQuestions(questionsByHeading) {
     const questionsContainer = document.getElementById('questionsContainer');
     questionsContainer.innerHTML = ''; 
@@ -150,6 +153,21 @@ function displayQuestions(questionsByHeading) {
             card.appendChild(cardBody);
             questionsContainer.appendChild(card);
 
+            // Log questions to the responseBox ONLY during initial load or when shouldLogQuestions is true
+            if (shouldLogQuestions) {
+                const responseBox = document.getElementById('responseBox');
+                responseBox.value += "\n\nQuestions:\n";
+                for (const level of sortedLevels) {
+                    responseBox.value += `\n${level}:\n`;
+                    questionsByHeading[level].forEach(question => {
+                        if (question.Status === 'red') { // Only log questions with 'red' status
+                            responseBox.value += ` - ${question.Question}\n`;
+                        }
+                    });
+            }
+            shouldLogQuestions = false; // Reset the flag after logging
+        }
+
     });
             // Initialize Bootstrap tooltips (AFTER appending all list items)
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -235,6 +253,13 @@ function displayCareAdvice(adviceData, listItem) {
         noAdviceItem.textContent = "No care advice found.";
         adviceForm.appendChild(noAdviceItem);
     }
+
+    // Append response to the responseBox
+    const responseBox = document.getElementById('responseBox');
+    responseBox.value += "\n\nCare Advice:\n";
+    adviceData.forEach(advice => {
+        responseBox.value += ` - ${advice.CareAdvice}\n`;
+    });
 
     adviceSection.appendChild(adviceForm);
     cardBody.appendChild(adviceSection); 
