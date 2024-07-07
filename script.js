@@ -1,20 +1,18 @@
 const searchInput = document.getElementById('searchInput');
 const protocolDropdown = document.getElementById('protocolDropdown');
-let allProtocols = []; // Array to store all protocols for filtering
-let currentEncounterID = null;
-let allQuestions = []; 
+let allQuestions = [];
 
 async function fetchProtocols() {
     const response = await fetch('get_protocols.php');
-    allProtocols = await response.json(); // Store all protocols
-    populateDropdown(allProtocols); // Populate initially
+    allProtocols = await response.json();
+    populateDropdown(allProtocols);
 }
 
 function populateDropdown(protocols) {
-    protocolDropdown.innerHTML = ''; // Clear dropdown
+    protocolDropdown.innerHTML = '';
     protocols.forEach(item => {
         const option = document.createElement('option');
-        option.value = item.algorithmID; // Use algorithmID as value
+        option.value = item.algorithmID;
         option.textContent = item.title;
         protocolDropdown.appendChild(option);
     });
@@ -23,12 +21,11 @@ function populateDropdown(protocols) {
 searchInput.addEventListener('input', () => {
     const searchTerm = searchInput.value.toLowerCase();
     const filteredProtocols = allProtocols.filter(protocol => 
-        protocol.title.toLowerCase().includes(searchTerm) // Filter on the title property
+        protocol.title.toLowerCase().includes(searchTerm)
     );
     populateDropdown(filteredProtocols); 
 });
 
-// Initial fetch
 fetchProtocols();
 
 
@@ -56,76 +53,6 @@ protocolDropdown.addEventListener('change', async () => {
     // Enable the End Encounter button here, after the questions are loaded
     document.getElementById('endEncounterBtn').disabled = false;
 });
-
-
-// Function to end the encounter
-async function endEncounter() {
-    if (!currentEncounterID) {
-        alert("No active encounter.");
-        return;
-    }
-
-    const selectedQuestions = [];
-    const selectedAdvice = [];
-
-    // Gather selected questions and advice
-    document.querySelectorAll('.question-item.selected-green, .question-item.selected-red').forEach(item => {
-        
-        const questionID = item.textContent; // Extract question text
-        const question = allQuestions.find(q => q.Question === questionID); // Find the original question object
-        const adviceCheckboxes = item.closest('.card-body').querySelectorAll('.care-advice input[type="checkbox"]:checked');
-
-        if (question) {
-        selectedQuestions.push({
-            questionID: question.QuestionID,
-            status: item.classList.contains('selected-red') ? 'red' : 'green'
-        });
-
-        adviceCheckboxes.forEach(checkbox => {
-            selectedAdvice.push({
-                questionID: question.QuestionID,
-                adviceID: checkbox.value
-                });
-            });
-        }
-        // Find associated care advice checkboxes if the question is red
-        if (item.classList.contains('selected-red')) {
-            const adviceCheckboxes = item.closest('.card-body').querySelectorAll('.care-advice input[type="checkbox"]:checked');
-            adviceCheckboxes.forEach(checkbox => {
-                selectedAdvice.push({
-                    questionID: question.QuestionID,
-                    adviceID: checkbox.value
-                });
-            });
-        }
-    });
-
-    // Send data to server for saving
-    const response = await fetch('save_encounter_details.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            encounterID: currentEncounterID,
-            questions: selectedQuestions,
-            advice: selectedAdvice
-        })
-    });
-
-    if (response.ok) {
-        alert("Encounter details saved successfully.");
-        // Optionally, you can redirect to another page or clear the UI here
-        questionsContainer.innerHTML = ''; // clear questions container
-        protocolDropdown.selectedIndex = 0;  // reset dropdown
-    } else {
-        alert("Error saving encounter details.");
-    }
-}
-
-// Add event listener to the end encounter button
-document.getElementById('endEncounterBtn').addEventListener('click', endEncounter);
-
 
 function displayQuestions(questionsByHeading) {
     const questionsContainer = document.getElementById('questionsContainer');
@@ -255,8 +182,8 @@ async function fetchCareAdvice(questionID, listItem) {
         }
     }
 }
-  
-  function displayCareAdvice(adviceData, listItem) {
+
+function displayCareAdvice(adviceData, listItem) {
     const currentCard = listItem.closest('.card');
     const cardBody = currentCard.querySelector('.card-body'); // Get the cardBody from the currentCard
 
@@ -312,3 +239,67 @@ async function fetchCareAdvice(questionID, listItem) {
     adviceSection.appendChild(adviceForm);
     cardBody.appendChild(adviceSection); 
 }
+
+async function endEncounter() {
+    if (!currentEncounterID) {
+        alert("No active encounter.");
+        return;
+    }
+
+    const selectedQuestions = [];
+    const selectedAdvice = [];
+
+    // Gather selected questions and advice
+    document.querySelectorAll('.question-item.selected-green, .question-item.selected-red').forEach(item => {
+        
+        const questionID = item.textContent; // Extract question text
+        const question = allQuestions.find(q => q.Question === questionID); // Find the original question object
+        const adviceCheckboxes = item.closest('.card-body').querySelectorAll('.care-advice input[type="checkbox"]:checked');
+
+        if (question) {
+        selectedQuestions.push({
+            questionID: question.QuestionID,
+            status: item.classList.contains('selected-red') ? 'red' : 'green'
+        });
+
+        adviceCheckboxes.forEach(checkbox => {
+            selectedAdvice.push({
+                questionID: question.QuestionID,
+                adviceID: checkbox.value
+                });
+            });
+        }
+        // Find associated care advice checkboxes if the question is red
+        if (item.classList.contains('selected-red')) {
+            const adviceCheckboxes = item.closest('.card-body').querySelectorAll('.care-advice input[type="checkbox"]:checked');
+            adviceCheckboxes.forEach(checkbox => {
+                selectedAdvice.push({
+                    questionID: question.QuestionID,
+                    adviceID: checkbox.value
+                });
+            });
+        }
+    });
+
+    // Send data to server for saving
+    const response = await fetch('save_encounter_details.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            encounterID: currentEncounterID,
+            questions: selectedQuestions,
+            advice: selectedAdvice
+        })
+    });
+
+    if (response.ok) {
+        alert("Encounter details saved successfully.");
+        location.reload(true);
+    } else {
+        alert("Error saving encounter details.");
+    }
+}
+
+document.getElementById('endEncounterBtn').addEventListener('click', endEncounter);
